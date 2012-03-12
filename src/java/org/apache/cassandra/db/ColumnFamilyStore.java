@@ -995,7 +995,13 @@ public class ColumnFamilyStore implements ColumnFamilyStoreMBean
             /* add the SSTables on disk */
             for (SSTableReader sstable : ssTables_)
             {
-                iter = filter.getSSTableColumnIterator(sstable);
+                try {
+                    iter = filter.getSSTableColumnIterator(sstable);
+                } catch (IndexOutOfBoundsException e) {
+                    logger_.error("Skipping bad SSTable: " + sstable.indexFilename(), e);
+                    continue;
+                }
+
                 if (iter.getColumnFamily() != null)
                 {
                     returnCF.delete(iter.getColumnFamily());
